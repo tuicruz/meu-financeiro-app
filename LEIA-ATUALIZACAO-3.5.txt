@@ -1,0 +1,1 @@
+Meu Financeiro v3.5: iniciar expediente, salvar data/hora/km inicial no Supabase, retomar e finalizar depois. Faça backup antes de atualizar. Teste sincronização antes de confiar como único registro.

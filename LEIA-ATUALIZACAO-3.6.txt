@@ -1,0 +1,14 @@
+MEU FINANCEIRO v3.6 — CONTROLE DE SALDOS
+
+Novo painel em Visão geral para Banco do Brasil, Bradesco, Banco Inter e Caixa Econômica Federal.
+
+1. Faça backup JSON ANTES de atualizar.
+2. Envie TODOS os arquivos desta pasta para a raiz do repositório GitHub Pages, substituindo os anteriores.
+3. Atualize o site e confirme v3.6.
+4. Em Visão geral > Configurar saldos e registrar movimentações, informe um saldo inicial REAL de cada banco e a data da conferência.
+5. Registre entradas, saídas e transferências bancárias realizadas após o saldo inicial.
+6. No FIESTÃO, ao registrar repasse ou depósito, selecione o banco de destino. Não lance novamente o mesmo recebimento no controle bancário manual.
+
+IMPORTANTE: os saldos NÃO são consultados nos bancos e NÃO são automaticamente alterados ao marcar um lançamento como pago/recebido. Para refletir a movimentação, registre-a no painel bancário. Os recebimentos Uber informados com banco de destino são incluídos automaticamente no saldo bancário estimado.
+
+As contas ainda precisam ser conferidas nos aplicativos bancários. Não utilize como única fonte para decidir pagamentos. Evite alterações simultâneas em aparelhos diferentes: o Supabase usa um único registro de estado, sem controle de conflitos.
