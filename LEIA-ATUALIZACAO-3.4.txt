@@ -1,0 +1,9 @@
+Meu Financeiro v3.4
+- Versão visível no cabeçalho.
+- Saldo inicial do FIESTÃO preservado.
+- Registro opcional de depósito/repasse recebido na aba Lançamentos.
+- Nunca cadastrar novamente o mesmo valor: se já existir lançamento manual, desmarcar integração.
+- Ajuste de dinheiro usado fora das corridas não gera receita.
+- Apagar uma movimentação apaga seu lançamento vinculado (se ainda existir).
+- Exportar backup antes de atualizar.
+- Não usar em dois dispositivos simultaneamente sem validar a sincronização.
