@@ -1,0 +1,11 @@
+Meu Financeiro 3.3 — Saldo inicial FIESTÃO
+
+1. Exporte um backup JSON ANTES de atualizar.
+2. Envie os arquivos desta pasta para a RAIZ do repositorio GitHub e confirme o commit.
+3. Atualize o navegador e confira os dados financeiros.
+4. FIESTÃO > Saldo inicial: preencha a posicao inicial e salve.
+5. Confira o saldo em especie e a receber da Uber.
+
+Nao registre saldos iniciais como corridas.
+O sistema continua sem conciliacao bancaria automatica.
+A sincronizacao entre dispositivos ainda precisa de teste: evite editar simultaneamente.
