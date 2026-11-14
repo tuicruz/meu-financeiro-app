@@ -1,0 +1,16 @@
+MEU FINANCEIRO 3.0 — LOGIN E NUVEM
+
+IMPORTANTE: Não publique o ZIP inteiro. Publique SOMENTE index.html, app.js, icon.svg, manifest.webmanifest e sw.js.
+O repositório anterior tem histórico com dados financeiros embutidos; mantenha-o privado. Para publicação pública, use um repositório NOVO, sem histórico anterior.
+
+1. No Supabase, Authentication > Users, crie seu usuário e desative cadastros públicos (já realizado).
+2. SQL Editor: tabela finance_state com RLS e políticas para authenticated (já realizado).
+3. Abra o aplicativo hospedado em HTTPS e informe sua chave PÚBLICA sb_publishable_... na tela inicial. NÃO informe sb_secret ou service_role.
+4. Entre com o e-mail e a senha do usuário criado no Supabase.
+5. A nuvem começa vazia. Se você tiver um backup JSON anterior, importe-o somente DEPOIS do login em Configurações > Importar backup.
+6. Nunca publique backup JSON com seus dados financeiros.
+7. Se tiver dificuldade de login, confira o usuário no Supabase Authentication > Users.
+
+ATENÇÃO: A sincronização é básica (última gravação prevalece). Não edite simultaneamente em dois dispositivos. Aguarde a mensagem de sincronização antes de fechar. Não há suporte offline confiável. Faça backups periódicos.
+
+O site é publicamente acessível, mas os registros ficam no Supabase protegidos por login e políticas RLS. A tela de login não torna o código privado.
