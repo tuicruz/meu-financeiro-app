@@ -1,0 +1,13 @@
+MEU FINANCEIRO 3.2 — FIESTÃO / CAIXA
+
+1. Exporte um backup JSON ANTES de atualizar.
+2. Envie os arquivos desta pasta para a raiz do repositório GitHub Pages e confirme o commit.
+3. Atualize a página; no iPhone, feche e reabra o aplicativo.
+4. Confira seus lançamentos financeiros existentes antes de cadastrar corridas.
+5. Em cada expediente, dinheiro + saldo Uber devem somar faturamento + gorjetas.
+6. Registre depósitos e saques somente após ocorrerem; não são receitas novas.
+7. Expedientes antigos sem separação dinheiro/Uber aparecem como não classificados. Edite-os para classificar.
+8. Não use em dois dispositivos simultaneamente até testar a sincronização.
+9. Esta atualização NÃO faz conexão automática com Uber ou banco.
+10. O saldo em espécie é estimado: registre ajustes quando gastar dinheiro vivo fora do Uber.
+11. A sincronização ainda usa estado completo e exige testes antes de ser única fonte financeira.
