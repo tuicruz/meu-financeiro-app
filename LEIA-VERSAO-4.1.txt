@@ -1,0 +1,13 @@
+MEU FINANCEIRO v4.1 — CONTROLE UBER / BRADESCO
+
+1. Exporte backup antes de atualizar.
+2. Substitua os arquivos do repositorio GitHub pelos arquivos deste ZIP.
+3. Abra FIESTAO e informe os saldos reais da conta Uber e do dinheiro vivo na data de inicio.
+4. Da data de inicio em diante, registre no dia o credito efetivo na conta Uber, o recebido em especie e o abastecimento pago pela Uber.
+5. Quando transferir/depositar de verdade, registre a movimentacao correspondente.
+6. Nao crie um segundo lancamento de receita em Minhas contas para a mesma transferencia.
+7. Confira semanalmente os saldos calculados com os extratos reais. Ajustes exigem motivo.
+
+IMPORTANTE: O total enviado ao Bradesco NAO e receita adicional. O sistema nao consulta saldos bancarios reais, nao atualiza automaticamente o saldo bancario Bradesco e nao inclui os registros antigos no novo saldo de abertura.
+
+Primeira versao para testes: codigo verificado sintaticamente, mas sem teste integrado com sua conta Supabase.
