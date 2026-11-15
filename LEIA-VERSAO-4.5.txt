@@ -1,0 +1,5 @@
+Meu Financeiro v4.5 — edição rápida
+
+Clique no nome, data ou valor dos lançamentos na tela inicial ou Minhas contas para abrir o editor e corrigir vencimento, valor, descrição, status e observações. Clique em um banco no painel Meu dinheiro para ajustar o saldo. Em Cartões, use Editar fatura para alterar previsões antigas. Compras parceladas continuam editáveis pelo botão Editar.
+
+Faça backup antes de publicar. Substitua os arquivos do site no GitHub. Não é necessário importar JSON.
