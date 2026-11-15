@@ -1,0 +1,1 @@
+Versão 4.6 — edição clean. Clique diretamente no cartão de banco para informar o saldo; valores e descrições de lançamentos continuam clicáveis, sem ícones de caneta. Dados e sincronização preservados.
