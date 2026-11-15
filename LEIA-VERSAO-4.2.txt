@@ -1,0 +1,11 @@
+Meu Financeiro v4.2 — Cartões e visual Aurora
+
+1. FAÇA BACKUP JSON antes de atualizar.
+2. Substitua os arquivos no GitHub Pages.
+3. Clique em “◐ Visual novo” para voltar ao visual clássico; escolha fica apenas neste navegador.
+4. Aba Cartões: BB vence 10, Bradesco vence 5, Inter vence 10. Melhor dia indicado no ciclo atual: BB 01/12, Bradesco 19/11, Inter 04/12.
+5. Cadastre cada compra uma vez, escolha manualmente o mês da primeira fatura, marque paga somente após pagamento real.
+6. NÃO cadastre a mesma fatura também em Minhas contas: a aba Cartões é independente para evitar duplicidade.
+7. Os valores do cartão aparecem em painel separado na Visão geral; não são somados automaticamente ao indicador “Falta pagar” das Minhas contas.
+8. Dados dos cartões entram no backup JSON e na sincronização Supabase existente.
+9. Teste inicialmente com uma compra fictícia e exclua após validar.
