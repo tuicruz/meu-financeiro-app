@@ -1,0 +1,6 @@
+Meu Financeiro v4.3
+- Corrige contraste do menu Aurora e Clássico.
+- Mostra previsões de faturas BB já existentes em Minhas contas na aba Cartões, sem duplicar lançamentos.
+- NÃO cria compras parceladas individuais a partir de faturas agregadas.
+- Novas compras são separadas das previsões; se uma compra já estiver incluída na previsão, atualize manualmente a previsão para não contar duas vezes.
+- Faça backup JSON antes de atualizar.
