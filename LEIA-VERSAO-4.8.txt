@@ -1,0 +1,12 @@
+Meu Financeiro v4.8.0
+
+- Tema profissional automático claro/escuro.
+- Navegação e formulários otimizados para celular.
+- Versão visível no cabeçalho.
+- Histórico de conciliações de lançamentos exibido em Meu Dinheiro.
+- Proteção contra débitos retroativos em lançamentos antigos já pagos.
+- Impede edição antes de carregar dados do Supabase.
+
+IMPORTANTE: exporte backup JSON antes de substituir os arquivos. O saldo da pizzaria já lançada não é corrigido retroativamente para evitar duplicação. Confira o extrato e faça ajuste manual somente se necessário.
+
+Teste o lançamento novo com valor pequeno e confira a sincronização.
