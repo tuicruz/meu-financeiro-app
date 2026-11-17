@@ -185,8 +185,15 @@ $('cardMonth').onchange=renderCards;
 $('goCards').onclick=()=>showTab('cartoes');
 $('cardPurchaseForm').onsubmit=e=>{e.preventDefault();if(!user||!loaded)return alert('Aguarde a sincronização.');const id=$('cardEditId').value||uid(),bank=$('cardBank').value,description=$('cardDescription').value.trim(),amount=Number($('cardAmount').value),installments=Number($('cardInstallments').value),buyDate=$('cardBuyDate').value,firstMonth=$('cardFirstMonth').value;if(!cardBanks[bank]||!description||!Number.isFinite(amount)||amount<=0||!Number.isInteger(installments)||installments<1||installments>120||!/^\d{4}-\d{2}-\d{2}$/.test(buyDate)||!/^\d{4}-\d{2}$/.test(firstMonth))return alert('Confira os dados da compra.');if(cardState.paidInvoices.some(x=>x.bank===bank&&Array.from({length:installments},(_,i)=>addCardMonths(firstMonth,i)).includes(x.month))&&!confirm('Esta compra afeta uma fatura já marcada como paga. Você precisará conferir os valores. Continuar?'))return;cardState.purchases=cardState.purchases.filter(p=>p.id!==id).concat({id,bank,description,amount,installments,buyDate,firstMonth});save();cardClear();renderCards()};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-card-pay],[data-card-edit],[data-card-del]');if(!b)return;if(b.dataset.cardPay){const bank=b.dataset.cardPay,month=b.dataset.cardMonth,inv=cardInvoice(bank,month);if(inv.total<=0)return;const paid=inv.paid;if(!confirm(paid?'Desfazer o pagamento desta fatura?':'A fatura foi paga de verdade no banco? Confirmar pagamento de '+money(inv.total)+'?'))return;cardState.paidInvoices=cardState.paidInvoices.filter(x=>!(x.bank===bank&&x.month===month));if(!paid)cardState.paidInvoices.push({bank,month,paidAt:new Date().toISOString()});save();renderCards();return}const id=b.dataset.cardEdit||b.dataset.cardDel,p=cardState.purchases.find(x=>x.id===id);if(!p)return;if(b.dataset.cardDel){if(!confirm('Excluir a compra e todas as parcelas futuras?'))return;cardState.purchases=cardState.purchases.filter(x=>x.id!==id);save();renderCards();return}$('cardEditId').value=p.id;$('cardBank').value=p.bank;$('cardDescription').value=p.description;$('cardAmount').value=p.amount;$('cardInstallments').value=p.installments;$('cardBuyDate').value=p.buyDate;$('cardFirstMonth').value=p.firstMonth;$('cardPurchaseForm').scrollIntoView({behavior:'smooth'})});
-function applyTheme(){document.body.dataset.theme='professional';$('themeToggle').textContent='Aparência automática';}
-$('themeToggle').onclick=()=>alert('A aparência acompanha automaticamente o tema claro ou escuro do dispositivo.');applyTheme();
+function applyTheme(){
+ document.body.dataset.theme='professional';
+ const mode=localStorage.getItem('mf-ui-mode')||'auto';
+ document.body.dataset.uiMode=mode;
+ $('themeToggle').textContent=mode==='light'?'Tema claro':mode==='dark'?'Tema escuro':'Tema automático';
+ $('themeToggle').title='Alternar tema: automático, claro e escuro';
+}
+$('themeToggle').onclick=()=>{const current=localStorage.getItem('mf-ui-mode')||'auto';localStorage.setItem('mf-ui-mode',current==='auto'?'light':current==='light'?'dark':'auto');applyTheme()};
+applyTheme();
 
 
 
@@ -207,7 +214,7 @@ document.addEventListener('click',e=>{
  const el=e.target.closest('[data-dashboard-action]');if(!el)return;
  const action=el.dataset.dashboardAction;
  if(action==='new')openEditor();
- else if(action==='transfer'){const d=document.querySelector('#moneyPanel details');d.open=true;$('moneyMoveType').value='transfer';$('moneyMoveType').dispatchEvent(new Event('change'));d.scrollIntoView({behavior:'smooth'});$('moneyMoveAmount').focus()}
+ else if(action==='transfer'){showTab('fiestao');$('ledgerMoveForm').scrollIntoView({behavior:'smooth'});$('ledgerMoveAmount').focus()}
  else if(action==='pay'||action==='receive'){showTab('lancamentos');openEditor();$('type').value=action==='pay'?'despesa':'receita';$('description').focus()}
  else if(action==='uber')showTab('fiestao');
  else if(action==='cards')showTab('cartoes');
