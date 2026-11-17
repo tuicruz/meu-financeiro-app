@@ -1,0 +1,11 @@
+MEU FINANCEIRO 4.7 — CELULAR E CONCILIAÇÃO
+
+1. Faça backup JSON na versão anterior antes de publicar.
+2. Substitua index.html, app.js e sw.js no GitHub pelos arquivos deste pacote.
+3. Abra o site e atualize a página; no iPhone, feche e reabra o PWA.
+4. Ao criar lançamento PAGO, selecione a conta. Despesas debitam; receitas creditam. Pendentes não afetam saldo.
+5. Ao alterar o status de um lançamento existente para PAGO, escolha a conta solicitada.
+6. Lançamentos antigos pagos NÃO são debitados retroativamente. Se a despesa de ontem ainda não foi descontada, edite-a, selecione a conta e salve. Confira antes o saldo real para não descontar duas vezes.
+7. Para lançamentos novos conciliados, mudar valor/status ou excluir reverte e reaplica o efeito.
+8. Ajustes manuais de saldo e movimentações de caixa continuam disponíveis. Evite registrar a mesma despesa em ambos.
+9. Não altera banco de dados nem chaves Supabase; mantém estrutura de backup.
