@@ -197,7 +197,7 @@ applyTheme();
 
 
 
-$('appVersion').textContent='v5.5.1';
+$('appVersion').textContent='v5.5.2';
 
 /* v5.1 dashboard — read-only summaries, existing mutation handlers remain authoritative */
 function renderDashboard(){
