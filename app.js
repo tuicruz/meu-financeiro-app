@@ -176,7 +176,7 @@ $('themeToggle').onclick=()=>alert('A aparência acompanha automaticamente o tem
 
 
 
-$('appVersion').textContent='v5.1.0';
+$('appVersion').textContent='v5.2.0';
 
 /* v5.1 dashboard — read-only summaries, existing mutation handlers remain authoritative */
 function renderDashboard(){
@@ -200,3 +200,14 @@ document.addEventListener('click',e=>{
  else if(action==='goals')showTab('dividas');
  else if(action==='entries')showTab('lancamentos');
 });
+
+/* v5.2 mobile navigation */
+(function(){
+ const nav=document.querySelector('main .tabs'),more=document.getElementById('mobileMore');
+ if(!nav||!more)return;
+ const close=()=>{nav.classList.remove('mobile-open');more.setAttribute('aria-expanded','false')};
+ more.addEventListener('click',()=>{const open=nav.classList.toggle('mobile-open');more.setAttribute('aria-expanded',String(open))});
+ nav.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',close));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ document.addEventListener('click',e=>{if(!nav.contains(e.target))close()});
+})();
