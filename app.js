@@ -176,4 +176,4 @@ $('themeToggle').onclick=()=>alert('A aparência acompanha automaticamente o tem
 
 
 
-$('appVersion').textContent='v5.0.1';
+$('appVersion').textContent='v5.0.2';
