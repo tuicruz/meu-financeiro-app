@@ -176,7 +176,7 @@ $('themeToggle').onclick=()=>alert('A aparência acompanha automaticamente o tem
 
 
 
-$('appVersion').textContent='v5.3.0';
+$('appVersion').textContent='v5.4.0';
 
 /* v5.1 dashboard — read-only summaries, existing mutation handlers remain authoritative */
 function renderDashboard(){
