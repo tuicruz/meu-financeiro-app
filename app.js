@@ -197,7 +197,7 @@ applyTheme();
 
 
 
-$('appVersion').textContent='v5.5.2';
+$('appVersion').textContent='v5.5.3';
 
 /* v5.1 dashboard — read-only summaries, existing mutation handlers remain authoritative */
 function renderDashboard(){
@@ -275,3 +275,51 @@ if(backup55)backup55.addEventListener('click',()=>{
  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='meu-financeiro-backup-'+new Date().toISOString().slice(0,10)+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
+
+/* v5.5.3 — manual six-account balance reconciliation. Historical records untouched. */
+function balanceFields55(){return [...document.querySelectorAll('[data-balance-account]')]}
+function balanceCurrent55(k){
+ if(k==='uber')return ledgerBalances()?.digital??null;
+ if(k==='cash')return ledgerBalances()?.cash??moneyState.balances.cash;
+ return moneyState.balances[k];
+}
+function openBalanceScreen55(){
+ if(!user||!loaded)return alert('Aguarde a sincronização antes de conferir saldos.');
+ for(const el of balanceFields55()){const n=balanceCurrent55(el.dataset.balanceAccount);el.value=n===null?'':Number(n).toFixed(2)}
+ updateBalancePreview55();showTab('saldos');
+}
+function updateBalancePreview55(){
+ const fields=balanceFields55(),total=fields.reduce((sum,el)=>sum+(Number(el.value)||0),0);
+ if($('balancePreview'))$('balancePreview').textContent=money(Math.round(total*100)/100);
+}
+document.addEventListener('click',e=>{if(e.target.closest('[data-tab="saldos"]')){e.preventDefault();openBalanceScreen55()}});
+const balanceForm55=$('balanceReconcileForm');
+if(balanceForm55){
+ balanceForm55.addEventListener('input',updateBalancePreview55);
+ balanceForm55.addEventListener('submit',e=>{
+ e.preventDefault();
+ if(!user||!loaded)return alert('Aguarde a sincronização dos dados.');
+ const next={},changes=[];
+ for(const el of balanceFields55()){
+  const k=el.dataset.balanceAccount,n=Number(el.value),old=balanceCurrent55(k);
+  if(!el.value.trim()||!Number.isFinite(n)||Math.abs(n)>1e10)return alert('Informe um valor válido para todas as contas.');
+  next[k]=Math.round(n*100)/100;
+  if(old===null||Math.abs(next[k]-old)>=.005)changes.push(k+': '+(old===null?'não configurado':money(old))+' → '+money(next[k]));
+ }
+ if(!changes.length)return alert('Todos os saldos já estão conferidos. Nenhuma alteração necessária.');
+ if((next.uber!==null||next.cash!==null)&&!uberLedger.opening){
+  return alert('Antes de conciliar Uber e espécie, configure o saldo inicial na aba Uber. Nenhuma alteração foi salva.');
+ }
+ if(!confirm('Confirmar os saldos reais agora?\n\n'+changes.join('\n')+'\n\nIsso registra ajustes de conferência, não receitas ou despesas.'))return;
+ const now=new Date().toISOString(),date=now.slice(0,10);
+ for(const k of ['bradesco','bb','inter','caixa','cash']){
+  const old=moneyState.balances[k],value=next[k];if(Math.abs(value-old)<.005)continue;
+  moneyState.balances[k]=value;
+  moneyState.moves.push({id:uid(),type:'adjust',account:k,amount:Math.round((value-old)*100)/100,before:old,after:value,note:'Conferência de saldo — formulário',date:now});
+ }
+ const b=ledgerBalances();
+ if(b&&Math.abs(next.uber-b.digital)>=.005)uberLedger.moves.push({id:'zz-'+uid(),date,type:'adjust_uber',amount:next.uber,note:'Conferência de saldo — formulário'});
+ if(b&&Math.abs(next.cash-b.cash)>=.005)uberLedger.moves.push({id:'zz-'+uid(),date,type:'adjust_cash',amount:next.cash,note:'Conferência de saldo — formulário'});
+ moneyState.updatedAt=now;save();renderLedger();alert('Saldos atualizados. Confira o extrato e o resumo.');showTab('resumo');
+ });
+}
