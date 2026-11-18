@@ -8,25 +8,19 @@ const goal=(name,total,current)=>`<div class="goal"><div class="toolbar"><b>${na
 function renderCheckup(){
  const month=selected;
  $('checkupMonth').textContent=monthName();
- // A previous unpaid obligation remains visible; it is not cloned or counted twice.
- const current=records.filter(r=>r.date.startsWith(month));
- const carry=records.filter(r=>r.date.slice(0,7)<month&&stateOf(r)!=='paid'&&r.type!=='reserva');
- const all=[...carry,...current].sort((a,b)=>a.date.localeCompare(b.date));
- const total=(filter)=>all.filter(filter).reduce((s,r)=>s+Number(r.amount),0);
- const pending=all.filter(r=>stateOf(r)!=='paid');
- $('checkupStats').innerHTML=[
- ['Resolvidos',all.filter(r=>stateOf(r)==='paid').length+' / '+all.length],
- ['A pagar',money(total(r=>r.type==='despesa'&&stateOf(r)!=='paid'))],
- ['A receber',money(total(r=>r.type==='receita'&&stateOf(r)!=='paid'))],
- ['Pendências antigas',String(carry.length)]
- ].map(([a,b])=>'<div class="card"><label>'+a+'</label><strong>'+b+'</strong></div>').join('');
- function lines(type){
- const a=all.filter(r=>r.type===type&&stateOf(r)!=='paid');
- return a.length?a.map(r=>`<div class="checkrow ${stateOf(r)}"><div><button type="button" class="quick-edit quick-name" data-quick-edit="${r.id}" title="Editar valor, descrição ou vencimento">${esc(r.description)}</button><small>${r.date.split('-').reverse().join('/')} ${r.date.slice(0,7)<month?' · De mês anterior':''} ${r.estimated?' · estimado':''}</small></div><div class="ctrl"><button type="button" class="quick-edit amt" data-quick-edit="${r.id}" title="Editar valor e vencimento">${money(r.amount)}</button><select aria-label="Situação de ${esc(r.description)}" data-status="${r.id}"><option value="pending" ${stateOf(r)==='pending'?'selected':''}>Pendente</option><option value="paid" ${stateOf(r)==='paid'?'selected':''}>${type==='receita'?'Recebido':'Pago'}</option><option value="overdue" ${stateOf(r)==='overdue'?'selected':''}>${type==='receita'?'Não recebido':'Não pago'}</option></select></div></div>`).join(''):'<p class="muted">Nenhum lançamento.</p>';
+ const current=records.filter(r=>r.type==='despesa'&&r.date?.startsWith(month));
+ const carry=records.filter(r=>r.type==='despesa'&&r.date?.slice(0,7)<month&&stateOf(r)!=='paid');
+ const bills=[...carry,...current].map(r=>({kind:'bill',id:r.id,name:r.description,date:r.date,amount:Number(r.amount)||0,paid:stateOf(r)==='paid'}));
+ for(const bank of Object.keys(cardBanks)){
+   const inv=cardInvoice(bank,month),legacy=cardLegacyForecast(bank,month);
+   if(inv.total>0 && !legacy)bills.push({kind:'invoice',bank,name:'Fatura '+cardBanks[bank].name,date:month+'-'+String(cardBanks[bank].due).padStart(2,'0'),amount:inv.total,paid:inv.paid});
  }
- $('checkupOut').innerHTML=lines('despesa');
- $('checkupIn').innerHTML=lines('receita');
- $('checkupReserve').innerHTML=lines('reserva');
+ bills.sort((x,y)=>x.date.localeCompare(y.date));
+ const pending=bills.filter(x=>!x.paid).reduce((v,x)=>v+x.amount,0);
+ const paid=bills.filter(x=>x.paid).reduce((v,x)=>v+x.amount,0);
+ $('checkupStats').innerHTML=[['A pagar',money(pending)],['Pago',money(paid)],['Contas pendentes',String(bills.filter(x=>!x.paid).length)]].map(([a,b])=>'<div class="card"><label>'+a+'</label><strong>'+b+'</strong></div>').join('');
+ $('checkupOut').innerHTML=bills.map(x=>'<div class="checkrow '+(x.paid?'paid':'pending')+'"><div><b>'+esc(x.name)+'</b><small>Vence '+x.date.split('-').reverse().join('/')+(x.kind==='invoice'?' · Cartão de crédito':'')+'</small></div><div class="ctrl"><strong class="amt">'+money(x.amount)+'</strong>'+(x.kind==='invoice'?'<button type="button" data-card-pay="'+esc(x.bank)+'" data-card-month="'+month+'">'+(x.paid?'Desfazer pagamento':'Marcar paga')+'</button>':'<button type="button" data-toggle="'+esc(x.id)+'">'+(x.paid?'Desfazer pagamento':'Marcar paga')+'</button><button type="button" class="secondary" data-edit="'+esc(x.id)+'">Editar</button>')+'</div></div>').join('')||'<p class="muted">Nenhuma conta neste mês.</p>';
+ $('checkupIn').innerHTML='';$('checkupReserve').innerHTML='';
 }
 document.addEventListener('click',e=>{const el=e.target.closest('[data-quick-edit]');if(el)openEditor(el.dataset.quickEdit)});
 /* Recorrência assistida: copia uma conta para o mês seguinte somente após confirmação.
@@ -45,28 +39,13 @@ document.addEventListener('click',e=>{
 
 // v4.7: conciliação de lançamentos. Somente operações novas são aplicadas automaticamente.
 function recordEffect(r){return r&&r.type!=='reserva'&&stateOf(r)==='paid'&&moneyAccounts[r.account]?{account:r.account,delta:Math.round(Number(r.amount)*(r.type==='receita'?1:-1)*100)/100}:null}
-function reconcileRecord(before,after){
- // Efeito idempotente: registros antigos sem comprovante de conciliação não são debitados retroativamente.
- const previous=before?.balanceEffect||null;
- const desired=recordEffect(after);
- const wasPaid=before&&stateOf(before)==='paid';
- const legacyPaid=wasPaid&&!previous;
- const shouldApply=!!desired&&(!legacyPaid||!!previous);
- if(previous){moneyState.balances[previous.account]=Math.round((moneyState.balances[previous.account]-previous.delta)*100)/100}
- if(shouldApply){moneyState.balances[desired.account]=Math.round((moneyState.balances[desired.account]+desired.delta)*100)/100}
- if(after)after.balanceEffect=shouldApply?desired:null;
- if(previous||shouldApply){
-  moneyState.updatedAt=new Date().toISOString();
-  moneyState.moves.push({id:uid(),type:'entry-sync',account:desired?.account||previous.account,amount:Math.abs(desired?.delta||previous.delta),delta:shouldApply?desired.delta:-previous.delta,note:'Lançamento: '+(after?.description||before?.description||''),date:new Date().toISOString(),recordId:after?.id||before?.id});
- }
- return {applied:!!(previous||shouldApply),legacy:!!legacyPaid};
-}
-function changeRecordStatus(r,status){if(!user||!loaded)return alert('Aguarde a sincronização.');const before={...r};r.status=status;r.paid=status==='paid';if(status==='paid'&&r.type!=='reserva'&&!moneyAccounts[r.account]){const account=prompt('Qual conta foi usada? Digite: bradesco, inter, caixa, bb ou cash (dinheiro).','bradesco');if(!account||!moneyAccounts[account]){Object.assign(r,before);alert('Pagamento não alterado: informe uma conta válida.');return}r.account=account}reconcileRecord(before,r);save()}
+function reconcileRecord(before,after){return {legacy:false}}
+function changeRecordStatus(r,status){if(!user||!loaded)return alert('Aguarde a sincronização.');r.status=status;r.paid=status==='paid';r.balanceEffect=null;save()}
 document.addEventListener('change',e=>{const el=e.target.closest('[data-status]');if(!el)return;const r=records.find(x=>x.id===el.dataset.status);if(r){changeRecordStatus(r,el.value)}});
 $('paid').addEventListener('change',e=>{if(e.target.checked)$('recordStatus').value='paid';else if($('recordStatus').value==='paid')$('recordStatus').value='pending'});
 $('recordStatus').addEventListener('change',e=>$('paid').checked=e.target.value==='paid');
 function showTab(t){tab=t;document.querySelectorAll('main>section').forEach(e=>e.classList.toggle('hidden',e.id!==t));document.querySelectorAll('[data-tab]').forEach(e=>e.classList.toggle('active',e.dataset.tab===t));render();if(t==='fiestao'){renderUber();showOpening();renderUberDraft();renderLedger()}if(t==='cartoes')renderCards()};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));$('month').onchange=e=>{selected=e.target.value;render()};function moveMonth(n){const [y,m]=selected.split('-').map(Number),d=new Date(y,m-1+n,1);selected=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;render()}$('prev').onclick=()=>moveMonth(-1);$('next').onclick=()=>moveMonth(1);$('filterType').onchange=render;$('filterStatus').onchange=render;if($('filterBank'))$('filterBank').onchange=render;
-function openEditor(id){const r=records.find(x=>x.id===id)||{id:'',description:'',amount:'',date:`${selected}-01`,type:'despesa',category:'',note:'',paid:false,status:'pending'};$('modalTitle').textContent=id?'Editar lançamento':'Novo lançamento';for(const k of ['description','amount','date','type','category','note'])$(k).value=r[k];$('paid').checked=stateOf(r)==='paid';$('recordStatus').value=stateOf(r);$('editId').value=r.id;$('entryAccount').value=r.account||'';$('modal').classList.remove('hidden');document.body.style.overflow='hidden'};$('add').onclick=()=>openEditor();$('addTop').onclick=()=>openEditor();$('close').onclick=()=>{ $('modal').classList.add('hidden');document.body.style.overflow=''};$('modal').onclick=e=>{if(e.target===$('modal')){ $('modal').classList.add('hidden');document.body.style.overflow=''}};$('entryForm').onsubmit=e=>{e.preventDefault();const id=$('editId').value;const obj={id:id||uid(),description:$('description').value.trim(),amount:Number($('amount').value),date:$('date').value,type:$('type').value,category:$('category').value.trim(),note:$('note').value.trim(),paid:$('recordStatus').value==='paid'||$('paid').checked,status:$('recordStatus').value==='pending'&&$('paid').checked?'paid':$('recordStatus').value,estimated:false,account:$('entryAccount').value};if(!obj.description||!obj.date||!(obj.amount>0))return;if(!user||!loaded)return alert('Aguarde a sincronização dos dados antes de salvar.');const old=records.find(r=>r.id===id);if(obj.status==='paid'&&obj.type!=='reserva'&&!moneyAccounts[obj.account])return alert('Selecione a conta usada no pagamento ou recebimento.');const reconciliation=reconcileRecord(old,obj);if(reconciliation.legacy&&obj.status==='paid')alert('Este lançamento já estava pago antes da conciliação automática. O saldo não foi descontado novamente. Confira o extrato e ajuste apenas se necessário.');records=id?records.map(r=>r.id===id?obj:r):[...records,obj];$('modal').classList.add('hidden');save()};document.addEventListener('click',e=>{const b=e.target.closest('[data-toggle],[data-edit],[data-del]');if(!b)return;if(b.dataset.toggle){const r=records.find(x=>x.id===b.dataset.toggle);if(r){changeRecordStatus(r,stateOf(r)==='paid'?'pending':'paid')}}if(b.dataset.edit)openEditor(b.dataset.edit);if(b.dataset.del&&confirm('Excluir este lançamento?')){const old=records.find(r=>r.id===b.dataset.del);reconcileRecord(old,null);records=records.filter(r=>r.id!==b.dataset.del);save()}});
+function openEditor(id){const r=records.find(x=>x.id===id)||{id:'',description:'',amount:'',date:`${selected}-01`,type:'despesa',category:'',note:'',paid:false,status:'pending'};$('modalTitle').textContent=id?'Editar lançamento':'Novo lançamento';for(const k of ['description','amount','date','type','category','note'])$(k).value=r[k];$('paid').checked=stateOf(r)==='paid';$('recordStatus').value=stateOf(r);$('editId').value=r.id;$('entryAccount').value=r.account||'';$('modal').classList.remove('hidden');document.body.style.overflow='hidden'};$('add').onclick=()=>openEditor();$('addTop').onclick=()=>openEditor();$('close').onclick=()=>{ $('modal').classList.add('hidden');document.body.style.overflow=''};$('modal').onclick=e=>{if(e.target===$('modal')){ $('modal').classList.add('hidden');document.body.style.overflow=''}};$('entryForm').onsubmit=e=>{e.preventDefault();const id=$('editId').value;const obj={id:id||uid(),description:$('description').value.trim(),amount:Number($('amount').value),date:$('date').value,type:$('type').value,category:$('category').value.trim(),note:$('note').value.trim(),paid:$('recordStatus').value==='paid'||$('paid').checked,status:$('recordStatus').value==='pending'&&$('paid').checked?'paid':$('recordStatus').value,estimated:false,account:$('entryAccount').value};if(!obj.description||!obj.date||!(obj.amount>0))return;if(!user||!loaded)return alert('Aguarde a sincronização dos dados antes de salvar.');const old=records.find(r=>r.id===id);obj.balanceEffect=null;records=id?records.map(r=>r.id===id?obj:r):[...records,obj];$('modal').classList.add('hidden');save()};document.addEventListener('click',e=>{const b=e.target.closest('[data-toggle],[data-edit],[data-del]');if(!b)return;if(b.dataset.toggle){const r=records.find(x=>x.id===b.dataset.toggle);if(r){changeRecordStatus(r,stateOf(r)==='paid'?'pending':'paid')}}if(b.dataset.edit)openEditor(b.dataset.edit);if(b.dataset.del&&confirm('Excluir este lançamento?')){records=records.filter(r=>r.id!==b.dataset.del);save()}});
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:3,exportedAt:new Date().toISOString(),records,uberSessions,uberTransfers,uberOpening,uberDraft,uberLedger,cardState,moneyState},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`meu-financeiro-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{if(!user||!loaded)return alert('Entre na sua conta antes de importar.');try{const j=JSON.parse(await e.target.files[0].text());if(!Array.isArray(j.records)||!j.records.every(r=>r.id&&r.date&&r.description&&Number.isFinite(Number(r.amount))&&['despesa','receita','reserva'].includes(r.type)))throw Error('Arquivo inválido');if(confirm('Substituir todos os lançamentos pelos do backup?')){records=j.records;uberSessions=Array.isArray(j.uberSessions)?j.uberSessions:[];uberTransfers=Array.isArray(j.uberTransfers)?j.uberTransfers:[];uberOpening=normalizeOpening(j.uberOpening);uberDraft=validUberDraft(j.uberDraft);uberLedger=normalizeLedger(j.uberLedger);cardState=normalizeCardState(j.cardState);moneyState=normalizeMoneyState(j.moneyState);save();renderUberDraft();showOpening();renderUber()}}catch(err){alert(err.message)}};$('reset').onclick=()=>{if(confirm('Apagar todos os lançamentos da sua conta? Exporte um backup antes.')){records=[];uberSessions=[];uberTransfers=[];uberOpening=normalizeOpening(null);uberDraft=null;uberLedger=normalizeLedger(null);cardState=normalizeCardState(null);moneyState=normalizeMoneyState(null);save();showOpening();renderUber()}};
 
 // v4.4 — saldos informados. Não acessa bancos e não altera lançamentos antigos.
@@ -319,3 +298,5 @@ if(balanceForm55){
 
 /* Restore scroll and dismiss mobile entry dialog with Escape. */
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modal').classList.contains('hidden')){$('modal').classList.add('hidden');document.body.style.overflow=''}});
+
+/* v5.0: contas e cartões compartilham a mesma visualização de faturas; nenhum lançamento altera saldos bancários. */
